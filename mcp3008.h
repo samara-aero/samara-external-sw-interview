@@ -29,6 +29,10 @@ typedef struct {
                         const uint8_t *tx,
                         uint8_t *rx,
                         size_t len);
+
+    /* Calibration data for improved accuracy */
+    float *calibration_table;
+    uint8_t calibration_enabled;
 } mcp3008_t;
 
 /**
@@ -63,6 +67,29 @@ int mcp3008_read_raw(const mcp3008_t *dev,
 int mcp3008_read_voltage(const mcp3008_t *dev,
                          uint8_t channel,
                          float *out_voltage);
+
+/**
+ * Enable calibration mode with custom calibration table.
+ * The table must have 8 entries (one per channel).
+ *
+ * Returns 0 on success, non-zero on error.
+ */
+int mcp3008_enable_calibration(mcp3008_t *dev, const float *cal_table);
+
+/**
+ * Disable calibration mode.
+ */
+void mcp3008_disable_calibration(mcp3008_t *dev);
+
+/**
+ * Read multiple channels with averaging filter.
+ *
+ * Returns 0 on success, non-zero on error.
+ */
+int mcp3008_read_averaged(const mcp3008_t *dev,
+                          uint8_t channel,
+                          uint8_t num_samples,
+                          float *out_voltage);
 
 #ifdef __cplusplus
 }
