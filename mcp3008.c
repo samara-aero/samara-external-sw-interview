@@ -150,6 +150,7 @@ static void reset_calibration_to_defaults(mcp3008_t *dev)
 
 int mcp3008_enable_calibration(mcp3008_t *dev, const float *cal_table)
 {
+    // TODO: protect better here
     if (!dev || !cal_table) {
         return -1;
     }
@@ -213,11 +214,6 @@ int mcp3008_read_averaged(const mcp3008_t *dev,
         return -1;
     }
 
-    // Validate number of samples is reasonable
-    if (num_samples == 0 || num_samples > 100) {
-        return -2;
-    }
-
     // Allocate array to store samples
     // Dynamic allocation is used here for flexibility
     float *samples = (float *)malloc(num_samples * sizeof(float));
@@ -231,6 +227,7 @@ int mcp3008_read_averaged(const mcp3008_t *dev,
     }
 
     // Calculate the average using our helper function
+    // TODO: efficiency?
     *out_voltage = compute_average(samples, num_samples);
 
     // Clean up - always free allocated memory
