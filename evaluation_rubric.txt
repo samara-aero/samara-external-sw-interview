@@ -1,0 +1,19 @@
+Fatal errors:
+
+- print_led_info(&s_extra_led) — uninitialized led_t — same as before. s_extra_led is never passed to led_init(), fields are garbage, and initialized being false is not guaranteed on all toolchains.
+- Memory leak in led_format_info — tmp is malloc'd on every call and never free'd. In a long-running firmware context this will silently exhaust the heap.
+
+Risky practices:
+
+- malloc in firmware — heap allocation in an embedded context is risky in general: fragmentation, non-deterministic timing, and failure modes that are hard to recover from. A fixed local buffer char tmp[64] is the right call here, especially for a scratch buffer this small.
+- NULL check missing before dereference — led_set_mode and led_tick both check led->initialized without first verifying led != NULL. Fault before the guard fires.
+- error_handler passes led straight to led_set_mode without a NULL check — in a fault handler especially, this is where you most want defensive checks.
+- The s_pin_map scan in led_tick — blink state tied to pin scan rather than the struct; two LEDs on the same pin alias each other's counter.
+
+Nits:
+
+- Five led_t instances, MAX_LEDS is 4 — 5th led_init call silently fails.
+- led_get_state should take const led_t * — it only reads led->pin, no mutation occurs.
+- int buflen should be size_t to match snprintf's expectation.
+- Mixed doc comment style in led.h — some briefs use @param/@brief Doxygen tags, others are plain prose. Pick one and be consistent.
+- %d for bool in led_format_info — active_high is bool; %d works but %u or an explicit cast is cleaner.
